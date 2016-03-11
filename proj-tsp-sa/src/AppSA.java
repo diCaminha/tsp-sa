@@ -87,10 +87,7 @@ public class AppSA {
 			}
 		}
 
-		// for (int i = 0; i < currentSolution.size(); i++) {
-		//
-		// System.out.print(currentSolution.get(i) + " ");
-		// }
+		
 		System.out.println(e);
 	}
 
