@@ -36,6 +36,18 @@ public class Path {
 		return neighbor;
 	}
 
+	public void generateInitialPath(CostMatrix matrix) {
+
+		Path initialPath = new Path();
+		for (int i = 0; i < matrix.getSize(); i++) {
+			initialPath.getPath().add(i, i);
+		}
+		initialPath.shufflePath();
+		
+		this.path = initialPath.getPath();
+
+	}
+	
 	public void alteratePath(List<Integer> a, List<Integer> b) {
 		
 		a.add(0, b.get(b.size()-1));

@@ -6,89 +6,62 @@ import java.util.Random;
 public class AppSA {
 	
 
-	private static Path generateInitialPath(CostMatrix matrix) {
-
-		Path initialPath = new Path();
-		for (int i = 0; i < matrix.getSize(); i++) {
-			initialPath.getPath().add(i, i);
-		}
-		initialPath.shufflePath();
-		
-		return initialPath;
-
-	}
-
 	public static void main(String[] args) {
 
-		int numberOfTemp = 15;
-		int iterationsPerTemp = 30;
-		int temperature = 50;
-		
-		int dEnergy;
-		int e_candidate;
-		double p;
-		double r;
-		boolean stop = false;
 		
 		CostMatrix matrix = new CostMatrix(40);
 		matrix.fillMatrixRandomly();
 		
 		Path currentSolution = new Path();
-		currentSolution = generateInitialPath(matrix);
+		currentSolution.generateInitialPath(matrix);
+		
 		//System.out.println(currentSolution.calculateCostPath(matrix.getMatrix()));
 		Path candidateSolution = new Path();
 
 
+		UtilSA sa = new UtilSA(15, 30, 50);
+		
 		// energy calculation of this current solution --> E(currentSolution)
-		int e = currentSolution.calculateCostPath(matrix.getMatrix());
-
+		sa.setE_solution(currentSolution.calculateCostPath(matrix.getMatrix()));
+		
+		
 		int countIteration = 0;
 		int countTemp = 0;
 
-		while (!stop && temperature > 1) {
-			if (countIteration > iterationsPerTemp) {
+		while (!sa.stop && sa.getTemperature() > 1) {
+			if (countIteration > sa.getIterationsPerTemp()) {
 
-				temperature *= 0.75;
+				sa.setTemperature(sa.getTemperature() * 0.75); 
 				countIteration = 0;
 				countTemp++;
 
-				if (countTemp > numberOfTemp) {
-					stop = true;
+				if (countTemp > sa.getNumberOfTemp()) {
+					sa.stop = true;
 
 				} else {
 
 				}
 
 			}
-			if (countIteration <= iterationsPerTemp) {
+			if (countIteration <= sa.getIterationsPerTemp()) {
 
 				countIteration++;
 
 				candidateSolution.setPath(currentSolution.getNeighbor());
-				e_candidate = candidateSolution.calculateCostPath(matrix.getMatrix());
-				System.out.println(e_candidate+ " " + e);
 				
-				dEnergy = e_candidate - e;
-				if (dEnergy <= 0) {
-					currentSolution = candidateSolution;
-					e = e_candidate;
-				} else {
-
-					p = Math.exp(-(dEnergy / temperature));
-					r = Math.random();
-
-					if (r < p) {
-						currentSolution = candidateSolution;
-						e = e_candidate;
-					}
-
-				}
+				sa.setE_candidate(candidateSolution.calculateCostPath(matrix.getMatrix()));
+				
+				System.out.println(sa.getE_candidate()+ " " + sa.getE_solution());
+				
+				sa.calculate_dEnergy();
+				
+				sa.metropolisAlgorithm(currentSolution,candidateSolution);
 
 			}
 		}
 
 		
-		System.out.println(e);
+		System.out.println(sa.getE_solution());
 	}
 
 }
