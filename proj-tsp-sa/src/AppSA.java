@@ -4,64 +4,32 @@ import java.util.List;
 import java.util.Random;
 
 public class AppSA {
-	
+
+	public static int numberOfCities = 100;
+	public static int quantPossibleChangesInTemp = 18; // 10-20
+	public static int iterationsPerTemp = 90; // 20-100
+	public static int initialTemp = 50;
 
 	public static void main(String[] args) {
 
-		
-		CostMatrix matrix = new CostMatrix(40);
+		// inicializing and filling the matrix used in the program with the
+		// number of cities
+		CostMatrix matrix = new CostMatrix(numberOfCities);
 		matrix.fillMatrixRandomly();
-		
+
+		// creating a random path through the cities in matrix, and initilizing
+		// a candidate Solution
 		Path currentSolution = new Path();
 		currentSolution.generateInitialPath(matrix);
-		
-		//System.out.println(currentSolution.calculateCostPath(matrix.getMatrix()));
-		Path candidateSolution = new Path();
 
-
-		UtilSA sa = new UtilSA(15, 30, 50);
-		
-		// energy calculation of this current solution --> E(currentSolution)
-		sa.setE_solution(currentSolution.calculateCostPath(matrix.getMatrix()));
+		UtilSA sa = new UtilSA(quantPossibleChangesInTemp, iterationsPerTemp, initialTemp);
 		
 		
-		int countIteration = 0;
-		int countTemp = 0;
+		sa.execute_quenching(currentSolution, matrix);
 
-		while (!sa.stop && sa.getTemperature() > 1) {
-			if (countIteration > sa.getIterationsPerTemp()) {
-
-				sa.setTemperature(sa.getTemperature() * 0.75); 
-				countIteration = 0;
-				countTemp++;
-
-				if (countTemp > sa.getNumberOfTemp()) {
-					sa.stop = true;
-
-				} else {
-
-				}
-
-			}
-			if (countIteration <= sa.getIterationsPerTemp()) {
-
-				countIteration++;
-
-				candidateSolution.setPath(currentSolution.getNeighbor());
-				
-				sa.setE_candidate(candidateSolution.calculateCostPath(matrix.getMatrix()));
-				
-				System.out.println(sa.getE_candidate()+ " " + sa.getE_solution());
-				
-				sa.calculate_dEnergy();
-				
-				sa.metropolisAlgorithm(currentSolution,candidateSolution);
-
-			}
-		}
-
+		int solution = sa.getSolution_energy();
 		
-		System.out.println(sa.getE_solution());
+		System.out.println(solution);
 	}
 
 }

@@ -1,66 +1,109 @@
 public class UtilSA {
 
-	private int numberOfTemp;
+	private int quantPossibleVariationsInTemp;
 	private int iterationsPerTemp;
 	private double temperature;
 	private int dEnergy;
-	private int e_solution;
-	private int e_candidate;
+	private int solution_energy;
+	private int candidate_energy;
 	private double p;
 	private double r;
-	boolean stop;
+	boolean stopSimulatedAneallingProcess;
+	
+	int countIterationInCurrentTemp;
+	int countVariationsInTemp;
+	
+	private Path currentSolution,candidateSolution;
+	
+	
+	public UtilSA(int quantPossibleVariationsInTemp, int iterationsPerTemp,
+			int initialTemp) {
 
-	public UtilSA(int numberOfTemp, int iterationsPerTemp, int initialTemp) {
-
-		this.numberOfTemp = numberOfTemp;
+		this.quantPossibleVariationsInTemp = quantPossibleVariationsInTemp;
 		this.iterationsPerTemp = iterationsPerTemp;
 		this.temperature = initialTemp;
 
 		this.dEnergy = 0;
-		this.e_candidate = 0;
+		this.candidate_energy = 0;
 		this.p = 0.0;
 		this.r = 0.0;
-
-		this.stop = false;
+		
+		candidateSolution = new Path();
+		
+		this.stopSimulatedAneallingProcess = false;
 	}
 
-	public void calculate_dEnergy() {
-
-		this.dEnergy = this.e_candidate - this.e_solution;
-	}
-
-	public void metropolisAlgorithm(Path currentSolution, Path candidateSolution) {
+	public void metropolisAlgorithm() {
 
 		if (this.dEnergy <= 0) {
-			currentSolution = candidateSolution;
-			e_solution = e_candidate;
+			setCurrentSolution(candidateSolution);
+			setSolutionEnergy(candidate_energy);
+			System.out.println("baixou");
 		} else {
 
 			p = Math.exp(-(dEnergy / temperature));
 			r = Math.random();
 
 			if (r < p) {
-				currentSolution = candidateSolution;
-				e_solution = e_candidate;
+				setCurrentSolution(candidateSolution);
+				setSolutionEnergy(candidate_energy);
+				System.out.println("n baixou mas mudou");
 			}
 
 		}
 	}
 
-	public int getNumberOfTemp() {
-		return numberOfTemp;
+
+	public void execute_quenching(Path currentSolution, CostMatrix matrix) {
+
+		countIterationInCurrentTemp = 0;
+		countVariationsInTemp = 0;
+		
+		setCurrentSolution(currentSolution);
+		
+		// energy calculation of this current solution --> E(currentSolution)
+		setSolutionEnergy(currentSolution.calculateCostPath(matrix.getMatrix()));
+
+		while (!this.stopSimulatedAneallingProcess && this.temperature > 1) {
+
+			if (countIterationInCurrentTemp > iterationsPerTemp) {
+				// decrease temperature by a constant
+				coolingTemperature();
+
+				if (countVariationsInTemp > quantPossibleVariationsInTemp)
+					stopSimulatedAneallingProcess = true;
+
+			} else {
+
+				countIterationInCurrentTemp++;
+				
+				//creating a new path candidate and calculating its energy
+				candidateSolution.setPath(currentSolution.getNeighbor());
+				setCandidateEnergy(candidateSolution.calculateCostPath(matrix.getMatrix()));
+
+				// log
+				System.out.println(getCandidate_energy() + " "
+						+ getSolution_energy());
+
+				calculate_dEnergy();
+
+				metropolisAlgorithm();
+
+			}
+		}
+
 	}
 
-	public void setNumberOfTemp(int numberOfTemp) {
-		this.numberOfTemp = numberOfTemp;
+	private void coolingTemperature() {
+		
+		temperature *= 0.8;
+		countVariationsInTemp++;
+		countIterationInCurrentTemp = 0;
 	}
 
-	public int getIterationsPerTemp() {
-		return iterationsPerTemp;
-	}
+	public void calculate_dEnergy() {
 
-	public void setIterationsPerTemp(int iterationsPerTemp) {
-		this.iterationsPerTemp = iterationsPerTemp;
+		this.dEnergy = this.candidate_energy - this.solution_energy;
 	}
 
 	public double getTemperature() {
@@ -79,44 +122,28 @@ public class UtilSA {
 		this.dEnergy = dEnergy;
 	}
 
-	public int getE_solution() {
-		return e_candidate;
+	public int getSolution_energy() {
+		return solution_energy;
 	}
 
-	public void setE_solution(int e_solution) {
-		this.e_solution = e_solution;
+	public void setSolutionEnergy(int solution_energy) {
+		this.solution_energy = solution_energy;
 	}
 
-	public int getE_candidate() {
-		return e_candidate;
+	public int getCandidate_energy() {
+		return candidate_energy;
 	}
 
-	public void setE_candidate(int e_candidate) {
-		this.e_candidate = e_candidate;
+	public void setCandidateEnergy(int candidate_energy) {
+		this.candidate_energy = candidate_energy;
 	}
 
-	public double getP() {
-		return p;
-	}
+	public void setCurrentSolution(Path currentSolution) {
 
-	public void setP(double p) {
-		this.p = p;
+		this.currentSolution = currentSolution;
 	}
-
-	public double getR() {
-		return r;
+	
+	public void setCandidateSolution(Path candidateSolution){
+		this.candidateSolution = candidateSolution;
 	}
-
-	public void setR(double r) {
-		this.r = r;
-	}
-
-	public boolean isStop() {
-		return stop;
-	}
-
-	public void setStop(boolean stop) {
-		this.stop = stop;
-	}
-
 }
